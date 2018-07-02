@@ -1,0 +1,19 @@
+{
+  "name": "lev",
+  "version": "0.1.0",
+  "description": "leveldb cli inspector",
+  "main": "index.js",
+  "bin": "cli/lvl.js",
+  "scripts": {
+    "start": "node index.js",
+    "cli": "node src/cli.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.16.0",
+    "level": "^4.0.0"
+  }
+}
