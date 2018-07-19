@@ -3,6 +3,7 @@
 const program = require('commander')
 const {version} = require('../package.json')
 const {logTransform} = require('../src/stream')
+const fs = require('fs')
 
 program
   .version(version)
@@ -37,6 +38,11 @@ function run (options = {}) {
 
   // console.log('Options: %o', {...options, ...config})
   // console.log(`Reading from ${program.path}:`)
+
+  const entries = fs.readdirSync(program.path)
+  if (!(entries.indexOf('LOG') >= 0)) {
+    return console.log('No level db was found at', program.path)
+  }
 
   const level = require('level')
   const db = level(program.path, config)
