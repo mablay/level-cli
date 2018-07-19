@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "leveldb cli inspector",
   "main": "index.js",
-  "bin": "cli/lvl.js",
+  "bin": {
+    "lev": "cli/lev.js"
+  },
   "scripts": {
     "start": "node index.js",
     "cli": "node src/cli.js",
