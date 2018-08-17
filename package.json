@@ -1,21 +1,27 @@
 {
-  "name": "lev",
-  "version": "0.1.0",
-  "description": "leveldb cli inspector",
+  "name": "level-cli",
+  "version": "0.2.0",
+  "description": "Interact with leveldb on the command line",
   "main": "index.js",
   "bin": {
-    "lev": "cli/lev.js"
+    "lev": "index.js"
   },
   "scripts": {
-    "start": "node index.js",
-    "cli": "node src/cli.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "level",
+    "leveldb",
+    "cli",
+    "inspect",
+    "command",
+    "console",
+    "terminal"
+  ],
+  "author": "Marc Ablay",
   "license": "ISC",
   "dependencies": {
-    "commander": "^2.16.0",
+    "commander": "^2.17.1",
     "level": "^4.0.0"
   }
 }
