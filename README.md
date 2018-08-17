@@ -31,7 +31,6 @@ Similar to [lev](https://github.com/hxoht/lev)
       -r, --reverse                   Reverse order
       -k, --keyEncoding <encoding>    key encoding [utf8, ascii, json, hex] (default: utf8)
       -v, --valueEncoding <encoding>  value encoding [utf8, ascii, json, hex] (default: utf8)
-      -v, --valueEncoding <encoding>  value encoding [utf8, ascii, json, hex] (default: utf8)
       -h, --help                      output usage information
 
 ## Example
