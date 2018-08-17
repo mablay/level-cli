@@ -6,7 +6,7 @@ Similar to [lev](https://github.com/hxoht/lev)
 
 ## Setup
 
-    npm i -g lev
+    npm i -g level-cli
 
 ## Usage
 
