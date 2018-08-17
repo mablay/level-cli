@@ -15,7 +15,6 @@ program
   .option('-r, --reverse', 'Reverse order', true)
   .option('-k, --keyEncoding <encoding>', 'key encoding [utf8, ascii, json, hex]', 'utf8')
   .option('-v, --valueEncoding <encoding>', 'value encoding [utf8, ascii, json, hex]', 'utf8')
-  .option('-v, --valueEncoding <encoding>', 'value encoding [utf8, ascii, json, hex]', 'utf8')
 
 program.command('keys').alias('k')
   .action(() => stream({keys: true, values: false}))
