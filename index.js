@@ -1,95 +1,112 @@
 #!/usr/bin/env node
 
-const level = require('level')
-const program = require('commander')
-const readline = require('readline')
-const fs = require('fs')
-const {version} = require('./package.json')
+import { ClassicLevel } from 'classic-level'
+import { program } from 'commander'
+import { createInterface } from 'readline/promises'
+import { readdirSync } from 'node:fs'
 
 program
-  .version(version)
+  .version('0.3.0')
   .option('-p, --path <path>', 'Path to leveldb', '.')
-  .option('-n, --limit <limit>', 'Stop reading after "limit" entries')
+  .option('-l, --limit <limit>', 'Stop reading after "limit" entries')
   .option('-f, --from <from>', 'Read records starting at "from".')
   .option('-t, --to <to>', 'Read records until "to".')
-  .option('-r, --reverse', 'Reverse order', true)
+  .option('-r, --reverse', 'Reverse order', false)
   .option('-k, --keyEncoding <encoding>', 'key encoding [utf8, ascii, json, hex]', 'utf8')
   .option('-v, --valueEncoding <encoding>', 'value encoding [utf8, ascii, json, hex]', 'utf8')
 
-program.command('keys').alias('k')
-  .action(() => stream({keys: true, values: false}))
+program.command('keys')
+  .description('list keys')
+  .action(async () => {
+  const iterator =  openLevelDB().keys(getIteratorOptions())
+  for await (const record of iterator) console.log(record)
+})
 
-program.command('values').alias('v')
-  .action(() => stream({values: true, keys: false}))
+program.command('values')
+  .description('list values')
+  .action(async () => {
+  const iterator =  openLevelDB().values(getIteratorOptions())
+  for await (const record of iterator) console.log(record)
+})
 
-program.command('list').alias('l')
-  .action(() => stream({values: true, keys: true}))
+program.command('list')
+  .description('list key value pairs')
+  .action(async () => {
+  const iterator =  openLevelDB().iterator(getIteratorOptions())
+  for await (const [key, value] of iterator) console.log({key, value})
+})
 
-program.command('get <key>').alias('g')
-  .action((key, cmd) => {
-    createLevel()
-      .get(key)
-      .then(console.log)
-      .catch(err => console.error(err.message))
-  })
+program.command('get <key>')
+  .description('get the value for a key')
+  .action((key) => {
+  openLevelDB().get(key)
+    .then(console.log)
+    .catch(err => console.error(err.message))
+})
 
-program.command('put <key> <value>').alias('p')
+program.command('put <key> <value>')
+  .description('write the value for a key')
   .action((key, value) => {
-    createLevel()
+    openLevelDB()
       .put(key, value)
       .catch(err => console.error(err.message))
-  })
+})
 
-program.command('del <key>').alias('d')
-  .action((key) => {
-    const db = createLevel()
-    if (!db) return
-    db.get(key)
-      .then(value => ask(`Record "${key}" has value "${value}". Do you really want to delete it? (y/N)\n`))
-      .then(answer => {
-        if (answer === 'y') return db.del(key)
-      })
-      .catch(err => console.error(err.message))
-  })
+program.command('del <key>')
+  .option('-y, --yes', 'confirm deletion')
+  .description('delete a key')
+  .action(async (key, { yes } = {}) => {
+  const db = openLevelDB()
+  try {
+    if (!yes) {
+      const value = await db.get(key)
+      if (value === undefined) {
+        console.log('record does not exist')
+        process.exit()
+      }
+      console.log({ key, value })
+      const answer = await ask('Do you really want to delete this record? (y/N)\n')
+      if (answer.toLowerCase() !== 'y') return
+    }
+    db.del(key)
+  } catch (error) {
+    console.error(error.message)
+  }
+})
 
-program.command('*', {noHelp: true}).action(printHelp)
+program.command('create <path>')
+  .description('create a LevelDB at a given path')
+  .action((path) => {
+    new ClassicLevel(path)
+  })
 
 program.parse(process.argv)
-if (program.args.length === 0) printHelp()
 
-function printHelp () {
-  program.outputHelp()
-  process.exit(0)
-}
-
-function createLevel () {
-  const entries = fs.readdirSync(program.path)
+function openLevelDB() {
+  const { path, keyEncoding, valueEncoding } = program.opts()
+  const entries = readdirSync(path)
   if (!(entries.indexOf('LOG') >= 0)) {
-    console.log('Error: No level db was found at '.concat(program.path))
-    return false
+    console.warn(`Error: No level db was found at ${path}`)
+    process.exit(1)
   }
-  const {keyEncoding, valueEncoding} = program
-  return level(program.path, {keyEncoding, valueEncoding})
+  return new ClassicLevel(path, { keyEncoding, valueEncoding })
 }
 
-function stream (options = {}) {
-  if (program.from !== undefined) { options.gte = program.from }
-  if (program.to !== undefined) { options.lte = program.to }
-  if (program.limit !== undefined) { options.limit = parseInt(program.limit) }
-  if (program.reverse) { options.reverse = program.reverse }
-
-  const db = createLevel()
-  if (!db) return
-  db.createReadStream(options).on('data', console.log)
+function getIteratorOptions (iteratorOptions = {}) {
+  const opts = program.opts()
+  if (opts.from !== undefined) iteratorOptions.gte = opts.from
+  if (opts.to !== undefined) { iteratorOptions.lte = opts.to }
+  if (opts.limit !== undefined) { iteratorOptions.limit = parseInt(opts.limit) }
+  if (opts.reverse) { iteratorOptions.reverse = opts.reverse }
+  return iteratorOptions
 }
 
-function ask (query) {
-  const rl = readline.createInterface({
+async function ask(query) {
+  const rl = createInterface({
     input: process.stdin,
     output: process.stdout
   })
-  return new Promise(resolve => rl.question(query, ans => {
-    rl.close()
-    resolve(ans)
-  }))
+  const answer = await rl.question(query)
+  rl.close()
+  return answer
 }
