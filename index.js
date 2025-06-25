@@ -6,7 +6,7 @@ import { createInterface } from 'readline/promises'
 import { readdirSync } from 'node:fs'
 
 program
-  .version('0.3.0')
+  .version('0.3.1')
   .option('-p, --path <path>', 'Path to leveldb', '.')
   .option('-l, --limit <limit>', 'Stop reading after "limit" entries')
   .option('-f, --from <from>', 'Read records starting at "from".')
